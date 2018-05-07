@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Logs;
+namespace Scrn\Journal;
 
 use Illuminate\Database\Eloquent\Model;
 use Scrn\Journal\Models\Activity;
