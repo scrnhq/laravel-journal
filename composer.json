@@ -27,10 +27,17 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Scrn\\Journal\\Test\\": "tests"
+            "Scrn\\Journal\\Tests\\": "tests"
         }
     },
     "scripts": {
         "test": "vendor/bin/phpunit"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Scrn\\Journal\\JournalServiceProvider"
+            ]
+        }
     }
 }

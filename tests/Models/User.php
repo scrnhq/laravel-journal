@@ -1,0 +1,23 @@
+<?php
+
+namespace Scrn\Journal\Tests\Models;
+
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Scrn\Journal\Concerns\HasActivity;
+use Scrn\Journal\Concerns\LogsActivity;
+
+class User extends \Illuminate\Foundation\Auth\User
+{
+    use HasActivity;
+    use LogsActivity;
+
+    protected $fillable = [
+        'email',
+        'content',
+    ];
+
+    public function articles(): HasMany
+    {
+        return $this->hasMany(Article::class);
+    }
+}

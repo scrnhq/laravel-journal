@@ -25,9 +25,9 @@ trait LogsActivity
                     throw new \Exception($attributeGetter . ' not found on ' . get_class($model) . '.');
                 }
 
-                $data = $model->$attributeGetter(...func_get_args());
+                list($old_data, $new_data) = $model->$attributeGetter(...func_get_args());
 
-                journal()->action($event)->on($model)->data($data)->save();
+                journal()->action($event)->on($model)->data($old_data, $new_data)->save();
             });
         }
     }
@@ -91,7 +91,7 @@ trait LogsActivity
      */
     public function getLoggedEvents(): array
     {
-        return $this->logged ?? config('activitylog.events', [
+        return $this->logged ?? config('journal.events', [
                 'created',
                 'updated',
                 'deleted',
