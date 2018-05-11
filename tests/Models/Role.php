@@ -3,16 +3,20 @@
 namespace Scrn\Journal\Tests\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Scrn\Journal\Concerns\LogsActivity;
 
-class Article extends Model
+class Role extends Model
 {
     use LogsActivity;
 
     protected $fillable = [
-        'title',
+        'email',
         'content',
     ];
 
-    protected $ignoreAttributes = [];
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class);
+    }
 }

@@ -14,15 +14,10 @@ class JournalTestCase extends TestCase
     {
         $app['config']->set('database.default', 'testbench');
         $app['config']->set('database.connections.testbench', [
-            'driver'   => 'sqlite',
+            'driver' => 'sqlite',
             'database' => ':memory:',
-            'prefix'   => '',
+            'prefix' => '',
         ]);
-//
-//        $app['config']->set('journal', [
-//            'table' => 'activity_log',
-//            ''
-//        ]);
     }
 
     protected function setUp()
@@ -31,8 +26,8 @@ class JournalTestCase extends TestCase
 
         $this->withoutExceptionHandling();
 
-        $this->artisan('migrate', ['--database' => 'testbench']);
-
+        $this->loadLaravelMigrations();
+        $this->loadMigrationsFrom(__DIR__ . '/../migrations');
         $this->loadMigrationsFrom(__DIR__ . '/migrations');
 
         $this->withFactories(__DIR__ . '/factories');
