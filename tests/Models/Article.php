@@ -14,5 +14,5 @@ class Article extends Model
         'content',
     ];
 
-    protected $ignoreAttributes = [];
+    protected $loggedAttributes = ['*'];
 }

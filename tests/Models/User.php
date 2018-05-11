@@ -17,6 +17,8 @@ class User extends \Illuminate\Foundation\Auth\User
         'content',
     ];
 
+    protected $loggedAttributes = ['*', 'roles.*'];
+
     public function articles(): HasMany
     {
         return $this->hasMany(Article::class);

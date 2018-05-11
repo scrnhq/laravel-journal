@@ -4,6 +4,7 @@ namespace Scrn\Journal\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Config;
 use Scrn\Journal\Models\Activity;
 
 trait LogsActivity
@@ -27,7 +28,11 @@ trait LogsActivity
 
                 list($old_data, $new_data) = $model->$attributeGetter(...func_get_args());
 
-                journal()->action($event)->on($model)->data($old_data, $new_data)->save();
+                journal()->action($event)
+                    ->on($model)
+                    ->by(auth()->user())
+                    ->data($old_data, $new_data)
+                    ->save();
             });
         }
     }
@@ -39,9 +44,17 @@ trait LogsActivity
      */
     public function getCreatedEventAttributes(): array
     {
+        $attributes = [];
+
+        foreach ($this->attributes as $attribute => $value) {
+            if ($this->shouldBeLogged($attribute)) {
+                $attributes[$attribute] = $value;
+            }
+        }
+
         return [
             [],
-            $this->attributes,
+            $attributes,
         ];
     }
 
@@ -52,9 +65,19 @@ trait LogsActivity
      */
     public function getUpdatedEventAttributes(): array
     {
+        $old = [];
+        $new = [];
+
+        foreach ($this->getDirty() as $attribute => $value) {
+            if ($this->shouldBeLogged($attribute)) {
+                $old[$attribute] = $this->getOriginal($attribute);
+                $new[$attribute] = $this->getAttribute($attribute);
+            }
+        }
+
         return [
-            $this->original,
-            $this->attributes,
+            $old,
+            $new,
         ];
     }
 
@@ -65,8 +88,16 @@ trait LogsActivity
      */
     public function getDeletedEventAttributes(): array
     {
+        $attributes = [];
+
+        foreach ($this->attributes as $attribute => $value) {
+            if ($this->shouldBeLogged($attribute)) {
+                $attributes[$attribute] = $value;
+            }
+        }
+
         return [
-            $this->attributes,
+            $attributes,
             [],
         ];
     }
@@ -100,6 +131,41 @@ trait LogsActivity
     }
 
     /**
+     * Determine if the attribute should be logged.
+     *
+     * @param string $attribute
+     * @return bool
+     */
+    public function shouldBeLogged(string $attribute): bool
+    {
+        return in_array($attribute, $this->getLoggedAttributes()) && !in_array($attribute, $this->getIgnoredAttributes());
+    }
+
+    /**
+     * Get the attributes that should be logged.
+     *
+     * @return array
+     */
+    public function getLoggedAttributes(): array
+    {
+        $attributes = [];
+
+        if (isset($this->loggedAttributes)) {
+            if (in_array('*', $this->loggedAttributes)) {
+                $attributes = array_merge(array_keys($this->attributes), array_diff($this->loggedAttributes, ['*']));
+            } else {
+                $attributes = $this->loggedAttributes;
+            }
+        }
+
+        if (!$this->shouldLogTimestamps()) {
+            $attributes = array_diff($attributes, [static::CREATED_AT, static::UPDATED_AT]);
+        }
+
+        return $attributes;
+    }
+
+    /**
      * Get the attributes that should never be logged.
      *
      * @return array
@@ -107,6 +173,27 @@ trait LogsActivity
     public function getIgnoredAttributes(): array
     {
         return $this->ignoredAttributes ?? [];
+    }
+
+    /**
+     * Determine if timestamps should be logged.
+     *
+     * @return bool
+     */
+    public function shouldLogTimestamps(): bool
+    {
+        return $this->logTimestamps ?? Config::get('journal.timestamps', false);
+    }
+
+    /**
+     * Determine if the event should be logged.
+     *
+     * @param string $event
+     * @return bool
+     */
+    public function shouldLogEvent(string $event): bool
+    {
+        return true;
     }
 
     /**

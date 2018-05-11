@@ -17,6 +17,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property string $causer_type
  * @property string $causer_snapshot
  * @property-read Model $causer
+ * @property string $url
+ * @property string $ip_address
+ * @property string $user_agent
  */
 class Activity extends Model
 {
@@ -33,8 +36,9 @@ class Activity extends Model
      * @var array
      */
     protected $casts = [
-        'old_data' => 'json',
-        'new_data' => 'json',
+        'old_data' => 'array',
+        'new_data' => 'array',
+        'causer_snapshot' => 'array',
     ];
 
     /**

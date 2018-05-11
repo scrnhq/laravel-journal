@@ -2,7 +2,9 @@
 
 namespace Scrn\Journal;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Request;
 use Scrn\Journal\Models\Activity;
 
 class Journal
@@ -38,10 +40,10 @@ class Journal
     /**
      * Record the model that caused the activity.
      *u
-     * @param \Illuminate\Database\Eloquent\Model $causer
+     * @param Authenticatable|null $causer
      * @return $this
      */
-    public function by(Model $causer)
+    public function by(Authenticatable $causer = null)
     {
         $this->causer = $causer;
 
@@ -91,8 +93,43 @@ class Journal
         $activity->event = $this->event;
         $activity->old_data = $this->old_data;
         $activity->new_data = $this->new_data;
+
+        $activity->url = $this->resolveUrl();
+        $activity->ip_address = $this->resolveIp();
+        $activity->user_agent = $this->resolveUserAgent();
+
         $activity->save();
 
         return $activity;
+    }
+
+    /**
+     * Resolve the IP address.
+     *
+     * @return string
+     */
+    protected function resolveIp(): string
+    {
+        return Request::ip();
+    }
+
+    /**
+     * Resolve the url.
+     *
+     * @return string
+     */
+    protected function resolveUrl(): string
+    {
+        return Request::fullUrl();
+    }
+
+    /**
+     * Resolve the user agent.
+     *
+     * @return string
+     */
+    protected function resolveUserAgent(): string
+    {
+        return Request::userAgent();
     }
 }

@@ -26,7 +26,7 @@ class CreateActivityLogsTable extends Migration
 
             $table->text('url');
             $table->ipAddress('ip_address');
-            $table->text('user_agent')->nullable();
+            $table->text('user_agent');
             $table->timestamps();
 
             $table->index(['subject_id', 'subject_type']);

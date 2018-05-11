@@ -2,7 +2,6 @@
 
 namespace Scrn\Journal\Tests\Feature\Concerns;
 
-use Illuminate\Support\Facades\Request;
 use Scrn\Journal\Models\Activity;
 use Scrn\Journal\Tests\JournalTestCase;
 use Scrn\Journal\Tests\Models\Article;
@@ -56,7 +55,7 @@ class LogsActivityTest extends JournalTestCase
         $this->assertEquals($article->id, $activity->subject_id);
         $this->assertEquals('created', $activity->event);
         $this->assertEquals([], $activity->old_data);
-        $this->assertEquals(['title' => $article->title, 'content' => $article->content], $activity->new_data);
+        $this->assertEquals(['id' => $article->id, 'title' => $article->title, 'content' => $article->content], $activity->new_data);
     }
 
     /** @test */
@@ -93,7 +92,29 @@ class LogsActivityTest extends JournalTestCase
         $activity = Activity::all()->last();
         $this->assertEquals($article->id, $activity->subject_id);
         $this->assertEquals('deleted', $activity->event);
-        $this->assertEquals(['title' => $article->title, 'content' => $article->content], $activity->old_data);
+        $this->assertEquals(['id' => $article->id, 'title' => $article->title, 'content' => $article->content], $activity->old_data);
         $this->assertEquals([], $activity->new_data);
+    }
+
+    /** @test */
+    public function it_logs_the_model_related_attached_event()
+    {
+        $user = factory(User::class)->create();
+
+        $this->assertCount(1, Activity::all());
+
+        $role = factory(Role::class)->create();
+
+        $this->assertCount(2, Activity::all());
+
+        $user->roles()->attach($role);
+
+        $this->assertCount(3, Activity::all());
+
+        $activity = Activity::all()->last();
+        $this->assertEquals($user->id, $activity->subject_id);
+        $this->assertEquals('attached', $activity->event);
+        $this->assertEquals(['roles' => []], $activity->old_data);
+        $this->assertEquals(['roles' => [['id' => $role->id]]], $activity->new_data);
     }
 }

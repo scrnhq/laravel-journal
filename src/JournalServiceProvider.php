@@ -14,10 +14,12 @@ class JournalServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__ . '/../config/journal.php' => config_path('journal.php')
+            __DIR__ . '/../config/journal.php' => config_path('journal.php'),
         ], 'config');
 
-        $this->loadMigrationsFrom(__DIR__ . '/../migrations');
+        $this->publishes([
+            __DIR__ . '/../migrations/' => database_path('migrations'),
+        ], 'migrations');
     }
 
     public function register()
