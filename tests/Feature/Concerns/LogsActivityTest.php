@@ -47,8 +47,9 @@ class LogsActivityTest extends JournalTestCase
     /** @test */
     public function it_logs_the_model_create_event()
     {
-        $article = factory(Article::class)->create();
+        $article = factory(User::class)->create();
 
+        // User created
         $this->assertCount(1, Activity::all());
 
         $activity = Activity::all()->last();
@@ -63,13 +64,15 @@ class LogsActivityTest extends JournalTestCase
     {
         $article = factory(Article::class)->create();
 
-        $this->assertCount(1, Activity::all());
+        // User created, Article created
+        $this->assertCount(2, Activity::all());
 
         $old_title = $article->title;
         $article->title = 'Other title';
         $article->save();
 
-        $this->assertCount(2, Activity::all());
+        // Article updated
+        $this->assertCount(3, Activity::all());
 
         $activity = Activity::all()->last();
         $this->assertEquals($article->id, $activity->subject_id);
@@ -83,11 +86,13 @@ class LogsActivityTest extends JournalTestCase
     {
         $article = factory(Article::class)->create();
 
-        $this->assertCount(1, Activity::all());
+        // User created, Article created
+        $this->assertCount(2, Activity::all());
 
         $article->delete();
 
-        $this->assertCount(2, Activity::all());
+        // Article deleted
+        $this->assertCount(3, Activity::all());
 
         $activity = Activity::all()->last();
         $this->assertEquals($article->id, $activity->subject_id);
@@ -97,24 +102,22 @@ class LogsActivityTest extends JournalTestCase
     }
 
     /** @test */
-    public function it_logs_the_model_related_attached_event()
+    public function it_logs_custom_model_events()
     {
-        $user = factory(User::class)->create();
+        $article = factory(Article::class)->create();
 
-        $this->assertCount(1, Activity::all());
-
-        $role = factory(Role::class)->create();
-
+        // User created, Article created
         $this->assertCount(2, Activity::all());
 
-        $user->roles()->attach($role);
+        $article->publish();
 
-        $this->assertCount(3, Activity::all());
+        // Article published, Article updated
+        $this->assertCount(4, Activity::all());
 
         $activity = Activity::all()->last();
-        $this->assertEquals($user->id, $activity->subject_id);
-        $this->assertEquals('attached', $activity->event);
-        $this->assertEquals(['roles' => []], $activity->old_data);
-        $this->assertEquals(['roles' => [['id' => $role->id]]], $activity->new_data);
+        $this->assertEquals($article->id, $activity->subject_id);
+        $this->assertEquals('published', $activity->event);
+        $this->assertEquals([], $activity->old_data);
+        $this->assertEquals([], $activity->new_data);
     }
 }

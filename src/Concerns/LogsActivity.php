@@ -4,11 +4,19 @@ namespace Scrn\Journal\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Config;
 use Scrn\Journal\Models\Activity;
 
 trait LogsActivity
 {
+    use LogsRelatedActivity;
+
+    /**
+     * @var array
+     */
+    protected $originalRelations = [];
+
     /**
      * Boot the logs activity trait for a model.
      *
@@ -19,7 +27,7 @@ trait LogsActivity
         $instance = new static;
 
         foreach ($instance->getLoggedEvents() as $event) {
-            static::registerModelEvent($event, function (Model $model) use ($event) {
+            static::$event(function (Model $model) use ($event) {
                 $attributeGetter = $model->resolveAttributeGetter($event);
 
                 if (!method_exists($model, $attributeGetter)) {
@@ -109,10 +117,7 @@ trait LogsActivity
      */
     public function getRestoredEventAttributes(): array
     {
-        return [
-            [],
-            $this->attributes,
-        ];
+        return array_reverse($this->getDeletedEventAttributes());
     }
 
     /**
@@ -122,12 +127,21 @@ trait LogsActivity
      */
     public function getLoggedEvents(): array
     {
-        return $this->logged ?? config('journal.events', [
-                'created',
-                'updated',
-                'deleted',
-                'restored',
-            ]);
+        if (isset($this->logged)) {
+            return $this->logged;
+        }
+
+        $events = Config::get('journal.events', ['created', 'updated', 'deleted']);
+
+        if (in_array(SoftDeletes::class, class_uses_recursive(static::class))) {
+            $events[] = 'restored';
+        }
+
+        if (in_array('Fico7489\Laravel\Pivot\Traits\PivotEventTrait', class_uses_recursive(static::class))) {
+            $events = array_merge($events, ['pivotAttached', 'pivotDetached', 'pivotUpdated']);
+        }
+
+        return $events;
     }
 
     /**
@@ -194,6 +208,31 @@ trait LogsActivity
     public function shouldLogEvent(string $event): bool
     {
         return true;
+    }
+
+    /**
+     * Get the models original relation values.
+     *
+     * @param string $key
+     * @param null $default
+     * @return mixed|array
+     */
+    public function getOriginalRelation(string $key, $default = null)
+    {
+        return Arr::get($this->original, $key, $default);
+    }
+
+    /**
+     * Sync a single original relation with its current value.
+     *
+     * @param string $relation
+     * @return $this
+     */
+    public function syncOriginalRelation(string $relation)
+    {
+        $this->originalRelations[$relation] = $this->getRelationValue($relation);
+
+        return $this;
     }
 
     /**

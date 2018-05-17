@@ -3,6 +3,7 @@
 namespace Scrn\Journal\Tests\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Scrn\Journal\Concerns\LogsActivity;
 
 class Article extends Model
@@ -14,5 +15,22 @@ class Article extends Model
         'content',
     ];
 
-    protected $loggedAttributes = ['*'];
+    protected $loggedAttributes = ['*', 'user.*'];
+
+    protected $observables = ['published'];
+
+    protected $logged = ['published'];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function publish()
+    {
+        $this->published_at = now();
+        $this->save();
+        $this->fireModelEvent('published');
+        return $this;
+    }
 }
