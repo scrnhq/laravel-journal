@@ -5,6 +5,7 @@ namespace Scrn\Journal\Concerns;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
 use Scrn\Journal\Models\Activity;
 
@@ -27,7 +28,7 @@ trait LogsActivity
         $instance = new static;
 
         foreach ($instance->getLoggedEvents() as $event) {
-            static::$event(function (Model $model) use ($event) {
+            static::registerModelEvent($event, function (Model $model) use ($event) {
                 $attributeGetter = $model->resolveAttributeGetter($event);
 
                 if (!method_exists($model, $attributeGetter)) {
@@ -55,7 +56,7 @@ trait LogsActivity
         $attributes = [];
 
         foreach ($this->attributes as $attribute => $value) {
-            if ($this->shouldBeLogged($attribute)) {
+            if ($this->shouldAttributeBeLogged($attribute)) {
                 $attributes[$attribute] = $value;
             }
         }
@@ -77,7 +78,7 @@ trait LogsActivity
         $new = [];
 
         foreach ($this->getDirty() as $attribute => $value) {
-            if ($this->shouldBeLogged($attribute)) {
+            if ($this->shouldAttributeBeLogged($attribute)) {
                 $old[$attribute] = $this->getOriginal($attribute);
                 $new[$attribute] = $this->getAttribute($attribute);
             }
@@ -99,7 +100,7 @@ trait LogsActivity
         $attributes = [];
 
         foreach ($this->attributes as $attribute => $value) {
-            if ($this->shouldBeLogged($attribute)) {
+            if ($this->shouldAttributeBeLogged($attribute)) {
                 $attributes[$attribute] = $value;
             }
         }
@@ -150,7 +151,7 @@ trait LogsActivity
      * @param string $attribute
      * @return bool
      */
-    public function shouldBeLogged(string $attribute): bool
+    public function shouldAttributeBeLogged(string $attribute): bool
     {
         return in_array($attribute, $this->getLoggedAttributes()) && !in_array($attribute, $this->getIgnoredAttributes());
     }
@@ -162,15 +163,7 @@ trait LogsActivity
      */
     public function getLoggedAttributes(): array
     {
-        $attributes = [];
-
-        if (isset($this->loggedAttributes)) {
-            if (in_array('*', $this->loggedAttributes)) {
-                $attributes = array_merge(array_keys($this->attributes), array_diff($this->loggedAttributes, ['*']));
-            } else {
-                $attributes = $this->loggedAttributes;
-            }
-        }
+        $attributes = $this->loggedAttributes ?? array_keys($this->attributes);
 
         if (!$this->shouldLogTimestamps()) {
             $attributes = array_diff($attributes, [static::CREATED_AT, static::UPDATED_AT]);
@@ -219,7 +212,7 @@ trait LogsActivity
      */
     public function getOriginalRelation(string $key, $default = null)
     {
-        return Arr::get($this->original, $key, $default);
+        return Arr::get($this->originalRelations, $key, $default);
     }
 
     /**

@@ -15,11 +15,9 @@ class Article extends Model
         'content',
     ];
 
-    protected $loggedAttributes = ['*', 'user.*'];
-
     protected $observables = ['published'];
 
-    protected $logged = ['published'];
+    protected $logged = ['created', 'updated', 'deleted', 'published'];
 
     public function user(): BelongsTo
     {

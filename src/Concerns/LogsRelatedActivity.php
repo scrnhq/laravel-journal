@@ -3,7 +3,6 @@
 namespace Scrn\Journal\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
 
 trait LogsRelatedActivity
 {
@@ -19,7 +18,7 @@ trait LogsRelatedActivity
         }
 
         foreach (['pivotAttaching', 'pivotDetaching', 'pivotUpdating'] as $event) {
-            static::$event(function (Model $model, $relation) use ($event) {
+            static::registerModelEvent($event, function (Model $model, $relation) use ($event) {
                 $model->syncOriginalRelation($relation);
             });
         }
@@ -57,11 +56,11 @@ trait LogsRelatedActivity
     public function getPivotDetachedEventAttributes(Model $model, $relation): array
     {
         $old = [
-            $relation => $this->getOriginalRelation($relation),
+            $relation => $this->getOriginalRelation($relation)->toArray(),
         ];
 
         $new = [
-            $relation => $this->getRelation($relation)->get
+            $relation => $this->getRelationshipFromMethod($relation)->toArray(),
         ];
 
         return [

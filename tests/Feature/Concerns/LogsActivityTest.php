@@ -5,7 +5,6 @@ namespace Scrn\Journal\Tests\Feature\Concerns;
 use Scrn\Journal\Models\Activity;
 use Scrn\Journal\Tests\JournalTestCase;
 use Scrn\Journal\Tests\Models\Article;
-use Scrn\Journal\Tests\Models\Role;
 use Scrn\Journal\Tests\Models\User;
 
 class LogsActivityTest extends JournalTestCase
@@ -47,57 +46,57 @@ class LogsActivityTest extends JournalTestCase
     /** @test */
     public function it_logs_the_model_create_event()
     {
-        $article = factory(User::class)->create();
+        $user = factory(User::class)->create();
 
         // User created
         $this->assertCount(1, Activity::all());
 
         $activity = Activity::all()->last();
-        $this->assertEquals($article->id, $activity->subject_id);
+        $this->assertEquals($user->id, $activity->subject_id);
         $this->assertEquals('created', $activity->event);
         $this->assertEquals([], $activity->old_data);
-        $this->assertEquals(['id' => $article->id, 'title' => $article->title, 'content' => $article->content], $activity->new_data);
+        $this->assertEquals(['id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'password' => $user->password], $activity->new_data);
     }
 
     /** @test */
     public function it_logs_the_model_update_event()
     {
-        $article = factory(Article::class)->create();
+        $user = factory(User::class)->create();
 
-        // User created, Article created
+        // User created
+        $this->assertCount(1, Activity::all());
+
+        $oldName = $user->name;
+        $user->name = 'John Doe';
+        $user->save();
+
+        // User updated
         $this->assertCount(2, Activity::all());
 
-        $old_title = $article->title;
-        $article->title = 'Other title';
-        $article->save();
-
-        // Article updated
-        $this->assertCount(3, Activity::all());
-
         $activity = Activity::all()->last();
-        $this->assertEquals($article->id, $activity->subject_id);
+        $this->assertEquals($user->id, $activity->subject_id);
         $this->assertEquals('updated', $activity->event);
-        $this->assertEquals(['title' => $old_title], $activity->old_data);
-        $this->assertEquals(['title' => $article->title], $activity->new_data);
+        $this->assertEquals(['name' => $oldName], $activity->old_data);
+        $this->assertEquals(['name' => $user->name], $activity->new_data);
     }
 
     /** @test */
     public function it_logs_the_model_delete_event()
     {
-        $article = factory(Article::class)->create();
+        $user = factory(User::class)->create();
 
-        // User created, Article created
+        // User created
+        $this->assertCount(1, Activity::all());
+
+        $user->delete();
+
+        // User deleted
         $this->assertCount(2, Activity::all());
 
-        $article->delete();
-
-        // Article deleted
-        $this->assertCount(3, Activity::all());
-
         $activity = Activity::all()->last();
-        $this->assertEquals($article->id, $activity->subject_id);
+        $this->assertEquals($user->id, $activity->subject_id);
         $this->assertEquals('deleted', $activity->event);
-        $this->assertEquals(['id' => $article->id, 'title' => $article->title, 'content' => $article->content], $activity->old_data);
+        $this->assertEquals(['id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'password' => $user->password], $activity->old_data);
         $this->assertEquals([], $activity->new_data);
     }
 
