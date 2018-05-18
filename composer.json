@@ -34,6 +34,7 @@
     "scripts": {
         "test": "vendor/bin/phpunit"
     },
+    "minimum-stability": "dev",
     "extra": {
         "laravel": {
             "providers": [
