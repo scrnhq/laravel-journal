@@ -16,7 +16,7 @@
     "require-dev": {
         "orchestra/testbench": "^3.4",
         "phpunit/phpunit": "^6.0|^7.0",
-        "fico7489/laravel-pivot": "^2.2"
+        "fico7489/laravel-pivot": "^2.0"
     },
     "autoload": {
         "psr-4": {
