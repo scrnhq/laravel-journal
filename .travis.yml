@@ -14,7 +14,7 @@ matrix:
     env: LARAVEL='5.6.*'
 
 before_install:
-  - composer require illuminate/contracts:${LARAVEL}
+  - composer require laravel/framework:${LARAVEL}
 
 install: composer install --no-interaction --prefer-dist
 
