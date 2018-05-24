@@ -31,11 +31,9 @@ trait LogsActivity
             static::registerModelEvent($event, function (Model $model) use ($event) {
                 $attributeGetter = $model->resolveAttributeGetter($event);
 
-                if (!method_exists($model, $attributeGetter)) {
-                    throw new \Exception($attributeGetter . ' not found on ' . get_class($model) . '.');
-                }
-
-                list($old_data, $new_data) = $model->$attributeGetter(...func_get_args());
+                list($old_data, $new_data) = method_exists($model, $attributeGetter)
+                    ? $model->$attributeGetter(...func_get_args())
+                    : [[], []];
 
                 journal()->action($event)
                     ->on($model)

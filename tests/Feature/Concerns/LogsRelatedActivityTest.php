@@ -28,7 +28,7 @@ class LogsRelatedActivityTest extends JournalTestCase
         $this->assertEquals($user->id, $activity->subject_id);
         $this->assertEquals('pivotAttached', $activity->event);
         $this->assertEquals(['roles' => []], $activity->old_data);
-        $this->assertEquals(['roles' => [['id' => $role->id, 'name' => $role->name]]], $activity->new_data);
+        $this->assertEquals(['roles' => [['role_id' => $role->id, 'user_id' => $user->id, 'comment' => null]]], $activity->new_data);
     }
 
     /** @test */
@@ -49,31 +49,29 @@ class LogsRelatedActivityTest extends JournalTestCase
         $activity = Activity::all()->last();
         $this->assertEquals($user->id, $activity->subject_id);
         $this->assertEquals('pivotDetached', $activity->event);
-        $this->assertEquals(['roles' => [['id' => $role->id, 'name' => $role->name]]], $activity->old_data);
+        $this->assertEquals(['roles' => [['role_id' => $role->id, 'user_id' => $user->id, 'comment' => null]]], $activity->old_data);
         $this->assertEquals(['roles' => []], $activity->new_data);
     }
 
     /** @test */
-    public function it_logs_only_selected_pivot_relations()
+    public function it_logs_the_many_to_many_related_updated_event()
     {
-        $this->markTestIncomplete();
-
         $user = factory(User::class)->create();
-
-        $this->assertCount(1, Activity::all());
-
         $role = factory(Role::class)->create();
-
-        $this->assertCount(2, Activity::all());
-
         $user->roles()->attach($role);
 
+        // User created, Role created, Role attached
         $this->assertCount(3, Activity::all());
+
+        $user->roles()->updateExistingPivot($role, ['comment' => 'This is a comment']);
+
+        // Role pivot updated
+        $this->assertCount(4, Activity::all());
 
         $activity = Activity::all()->last();
         $this->assertEquals($user->id, $activity->subject_id);
-        $this->assertEquals('pivotAttached', $activity->event);
-        $this->assertEquals(['roles' => []], $activity->old_data);
-        $this->assertEquals(['roles' => [['id' => $role->id, 'name' => $role->name]]], $activity->new_data);
+        $this->assertEquals('pivotUpdated', $activity->event);
+        $this->assertEquals(['roles' => [['role_id' => $role->id, 'user_id' => $user->id, 'comment' => null]]], $activity->old_data);
+        $this->assertEquals(['roles' => [['role_id' => $role->id, 'user_id' => $user->id, 'comment' => 'This is a comment']]], $activity->new_data);
     }
 }

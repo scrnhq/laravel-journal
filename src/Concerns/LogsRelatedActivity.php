@@ -31,13 +31,13 @@ trait LogsRelatedActivity
      * @param $relation
      * @return array
      */
-    public function getPivotAttachedEventAttributes(Model $model, $relation): array
+    public function getPivotAttachedEventAttributes(Model $model, $relation, $ids): array
     {
         $old = [
-            $relation => $this->getOriginalRelation($relation)->toArray(),
+            $relation => $this->getOriginalRelation($relation)->pluck('pivot'),
         ];
         $new = [
-            $relation => $this->getRelationshipFromMethod($relation)->toArray(),
+            $relation => $this->getRelationshipFromMethod($relation)->pluck('pivot'),
         ];
 
         return [
@@ -53,14 +53,13 @@ trait LogsRelatedActivity
      * @param $relation
      * @return array
      */
-    public function getPivotDetachedEventAttributes(Model $model, $relation): array
+    public function getPivotDetachedEventAttributes(Model $model, $relation, $ids): array
     {
         $old = [
-            $relation => $this->getOriginalRelation($relation)->toArray(),
+            $relation => $this->getOriginalRelation($relation)->pluck('pivot'),
         ];
-
         $new = [
-            $relation => $this->getRelationshipFromMethod($relation)->toArray(),
+            $relation => $this->getRelationshipFromMethod($relation)->pluck('pivot'),
         ];
 
         return [
@@ -76,20 +75,18 @@ trait LogsRelatedActivity
      * @param $relation
      * @return array
      */
-    public function getPivotUpdatedEventAttributes(Model $model, $relation): array
+    public function getPivotUpdatedEventAttributes(Model $model, $relation, $ids): array
     {
-        $old = [];
-        $new = [];
+        $old = [
+            $relation => $this->getOriginalRelation($relation)->pluck('pivot'),
+        ];
+        $new = [
+            $relation => $this->getRelationshipFromMethod($relation)->pluck('pivot'),
+        ];
 
         return [
             $old,
             $new,
         ];
     }
-
-    public function shouldLogRelation(string $relation): bool
-    {
-
-    }
-
 }

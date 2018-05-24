@@ -28,6 +28,6 @@ class User extends \Illuminate\Foundation\Auth\User
 
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class);
+        return $this->belongsToMany(Role::class)->withPivot('comment');
     }
 }
