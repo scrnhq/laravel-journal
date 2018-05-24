@@ -35,6 +35,9 @@ class JournalTestCase extends TestCase
 
     protected function getPackageProviders($app)
     {
-        return [JournalServiceProvider::class];
+        return [
+            JournalServiceProvider::class,
+            \Orchestra\Database\ConsoleServiceProvider::class,
+        ];
     }
 }
