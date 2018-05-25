@@ -26,7 +26,7 @@ class LogsActivityTest extends JournalTestCase
         $activity = Activity::all()->last();
         $this->assertEquals('http://localhost', $activity->url);
         $this->assertEquals('127.0.0.1', $activity->ip_address);
-        $this->assertEquals('Symfony', $activity->user_agent);
+        $this->assertNotNull($activity->user_agent);
     }
 
     /** @test */
