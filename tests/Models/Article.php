@@ -17,7 +17,7 @@ class Article extends Model
 
     protected $observables = ['published'];
 
-    protected $logged = ['created', 'updated', 'deleted', 'published'];
+    protected $logged = ['published'];
 
     public function user(): BelongsTo
     {

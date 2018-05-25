@@ -126,10 +126,6 @@ trait LogsActivity
      */
     public function getLoggedEvents(): array
     {
-        if (isset($this->logged)) {
-            return $this->logged;
-        }
-
         $events = Config::get('journal.events', ['created', 'updated', 'deleted']);
 
         if (in_array(SoftDeletes::class, class_uses_recursive(static::class))) {
@@ -138,6 +134,10 @@ trait LogsActivity
 
         if (in_array('Fico7489\Laravel\Pivot\Traits\PivotEventTrait', class_uses_recursive(static::class))) {
             $events = array_merge($events, ['pivotAttached', 'pivotDetached', 'pivotUpdated']);
+        }
+
+        if (isset($this->logged)) {
+            $events = array_merge($events, $this->logged ?? []);
         }
 
         return $events;
