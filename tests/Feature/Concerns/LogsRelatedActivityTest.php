@@ -63,7 +63,7 @@ class LogsRelatedActivityTest extends JournalTestCase
         // User created, Role created, Role attached
         $this->assertCount(3, Activity::all());
 
-        $user->roles()->updateExistingPivot($role, ['comment' => 'This is a comment']);
+        $user->roles()->updateExistingPivot($role->id, ['comment' => 'This is a comment']);
 
         // Role pivot updated
         $this->assertCount(4, Activity::all());
