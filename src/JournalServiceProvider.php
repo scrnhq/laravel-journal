@@ -2,6 +2,7 @@
 
 namespace Scrn\Journal;
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class JournalServiceProvider extends ServiceProvider
@@ -20,6 +21,8 @@ class JournalServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../migrations/' => database_path('migrations'),
         ], 'migrations');
+
+        Event::subscribe(JournalEventSubscriber::class);
     }
 
     public function register()
