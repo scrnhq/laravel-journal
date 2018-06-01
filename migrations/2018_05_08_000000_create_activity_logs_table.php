@@ -24,9 +24,9 @@ class CreateActivityLogsTable extends Migration
 
             $table->json('causer_snapshot')->nullable();
 
-            $table->text('url');
-            $table->ipAddress('ip_address');
-            $table->text('user_agent');
+            $table->text('url')->nullable();
+            $table->ipAddress('ip_address')->nullable();
+            $table->text('user_agent')->nullable();
             $table->timestamps();
 
             $table->index(['subject_id', 'subject_type']);

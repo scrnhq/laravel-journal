@@ -5,6 +5,7 @@ namespace Scrn\Journal\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Scrn\Journal\Contracts\ShouldBeLogged;
 
 /**
  * @property string $event
@@ -81,5 +82,21 @@ class Activity extends Model
     {
         return $query->where('causer_type', $causer->getMorphClass())
             ->where('causer_id', $causer->getKey());
+    }
+
+    /**
+     * Create an activity from a event that should be logged.
+     *
+     * @param ShouldBeLogged $event
+     * @return Activity
+     */
+    public static function fromEvent(ShouldBeLogged $event): self
+    {
+        $activity = new static();
+        $activity->event = class_basename($event);
+        $activity['old_data'] = [];
+        $activity['new_data'] = [];
+
+        return $activity;
     }
 }

@@ -4,6 +4,7 @@ namespace Scrn\Journal;
 
 use Illuminate\Events\Dispatcher;
 use Scrn\Journal\Contracts\ShouldBeLogged;
+use Scrn\Journal\Models\Activity;
 
 class JournalEventSubscriber
 {
@@ -23,7 +24,7 @@ class JournalEventSubscriber
      * @param $event
      * @param $payload
      */
-    protected function handle($event, $payload)
+    public function handle($event, $payload)
     {
         if (!$this->shouldBeLogged($event)) {
             return;
@@ -39,9 +40,7 @@ class JournalEventSubscriber
      */
     protected function store(ShouldBeLogged $event)
     {
-        $journal = journal()->by(auth()->user());
-
-        $event->store($journal);
+        Activity::fromEvent($event)->save();
     }
 
     /**
