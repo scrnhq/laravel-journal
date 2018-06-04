@@ -60,7 +60,7 @@ trait LogsActivity
         }
 
         return [
-            [],
+            null,
             $attributes,
         ];
     }
@@ -75,7 +75,7 @@ trait LogsActivity
         $old = [];
         $new = [];
 
-        foreach ($this->getDirty() as $attribute => $value) {
+        foreach (array_merge($this->getDirty(), $this->getChanges()) as $attribute => $value) {
             if ($this->shouldAttributeBeLogged($attribute)) {
                 $old[$attribute] = $this->getOriginal($attribute);
                 $new[$attribute] = $this->getAttribute($attribute);
@@ -105,7 +105,7 @@ trait LogsActivity
 
         return [
             $attributes,
-            [],
+            null,
         ];
     }
 

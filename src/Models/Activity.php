@@ -85,7 +85,7 @@ class Activity extends Model
     }
 
     /**
-     * Create an activity from a event that should be logged.
+     * Create an activity from an event that should be logged.
      *
      * @param ShouldBeLogged $event
      * @return Activity
@@ -93,9 +93,7 @@ class Activity extends Model
     public static function fromEvent(ShouldBeLogged $event): self
     {
         $activity = new static();
-        $activity->event = class_basename($event);
-        $activity['old_data'] = [];
-        $activity['new_data'] = [];
+        $activity->event = strtolower(class_basename($event));
 
         return $activity;
     }
