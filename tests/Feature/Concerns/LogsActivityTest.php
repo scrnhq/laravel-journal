@@ -2,6 +2,7 @@
 
 namespace Scrn\Journal\Tests\Feature\Concerns;
 
+use Illuminate\Support\Collection;
 use Scrn\Journal\Models\Activity;
 use Scrn\Journal\Tests\JournalTestCase;
 use Scrn\Journal\Tests\Models\Article;
@@ -16,6 +17,15 @@ class LogsActivityTest extends JournalTestCase
         parent::setUp();
 
         $this->assertCount(0, Activity::all());
+    }
+
+    /** @test */
+    public function it_has_many_activities()
+    {
+        $article = factory(Article::class)->create();
+
+        $this->assertInstanceOf(Collection::class, $article->activity()->get());
+        $this->assertTrue($article->activity()->first()->subject->is($article));
     }
 
     /** @test */
