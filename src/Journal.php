@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Request;
 use Scrn\Journal\Models\Activity;
+use Scrn\Journal\Resolvers\UserResolver;
 
 class Journal
 {
@@ -88,7 +89,7 @@ class Journal
         /** @var Activity $activity */
         $activity = app(Activity::class)->newInstance();
         $activity->subject()->associate($this->subject);
-        $activity->causer()->associate($this->causer);
+        $activity->causer()->associate($this->resolveUser());
         $activity->causer_snapshot = $this->causer ? $this->causer->toArray() : null;
         $activity->event = $this->event;
         $activity->old_data = $this->old_data;
@@ -113,6 +114,18 @@ class Journal
         $activity->save();
 
         return $activity;
+    }
+
+    /**
+     * Resolve the User.
+     *
+     * @return mixed|null
+     */
+    protected function resolveUser()
+    {
+        $resolver = config('journals.resolver.user', UserResolver::class);
+
+        return call_user_func([$resolver, 'resolve']);
     }
 
     /**
