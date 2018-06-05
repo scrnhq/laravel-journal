@@ -70,7 +70,7 @@ class Journal
      * @param array $new_data
      * @return $this
      */
-    public function data(array $old_data, array $new_data)
+    public function data(array $old_data = null, array $new_data = null)
     {
         $this->old_data = $old_data;
         $this->new_data = $new_data;
