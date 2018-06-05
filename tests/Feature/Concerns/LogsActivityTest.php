@@ -101,6 +101,29 @@ class LogsActivityTest extends JournalTestCase
     }
 
     /** @test */
+    public function it_logs_the_model_restored_event()
+    {
+        $article = factory(Article::class)->create();
+
+        // User created, Article created
+        $this->assertCount(2, Activity::all());
+
+        $article->delete();
+
+        // Article deleted
+        $this->assertCount(3, Activity::all());
+
+        $article->restore();
+
+        // Article restored
+        $this->assertCount(4, Activity::all());
+
+        $activity = Activity::all()->last();
+        $this->assertEquals($article->id, $activity->subject_id);
+        $this->assertEquals('restored', $activity->event);
+    }
+
+    /** @test */
     public function it_logs_custom_model_events()
     {
         $article = factory(Article::class)->create();
@@ -116,7 +139,7 @@ class LogsActivityTest extends JournalTestCase
         $activity = Activity::all()->last();
         $this->assertEquals($article->id, $activity->subject_id);
         $this->assertEquals('published', $activity->event);
-        $this->assertEquals([], $activity->old_data);
-        $this->assertEquals([], $activity->new_data);
+        $this->assertEquals(null, $activity->old_data);
+        $this->assertEquals(null, $activity->new_data);
     }
 }

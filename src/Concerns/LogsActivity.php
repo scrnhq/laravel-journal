@@ -29,11 +29,15 @@ trait LogsActivity
 
         foreach ($instance->getLoggedEvents() as $event) {
             static::registerModelEvent($event, function (Model $model) use ($event) {
+                if (!$model->shouldLogEvent($event)) {
+                    return;
+                }
+
                 $attributeGetter = $model->resolveAttributeGetter($event);
 
                 list($old_data, $new_data) = method_exists($model, $attributeGetter)
                     ? $model->$attributeGetter(...func_get_args())
-                    : [[], []];
+                    : null;
 
                 journal()->action($event)
                     ->on($model)

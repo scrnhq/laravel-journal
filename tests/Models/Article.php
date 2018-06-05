@@ -4,11 +4,13 @@ namespace Scrn\Journal\Tests\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Scrn\Journal\Concerns\LogsActivity;
 
 class Article extends Model
 {
     use LogsActivity;
+    use SoftDeletes;
 
     protected $fillable = [
         'title',

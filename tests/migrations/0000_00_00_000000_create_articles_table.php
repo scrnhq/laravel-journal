@@ -18,6 +18,7 @@ class CreateArticlesTable extends Migration
             $table->timestamp('published_at')->nullable();
             $table->unsignedInteger('user_id');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
