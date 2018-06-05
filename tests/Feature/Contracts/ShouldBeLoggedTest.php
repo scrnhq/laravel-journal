@@ -5,7 +5,12 @@ namespace Scrn\Journal\Tests\Feature\Contracts;
 use Scrn\Journal\Contracts\ShouldBeLogged;
 use Scrn\Journal\Tests\JournalTestCase;
 
-class Event implements ShouldBeLogged {
+class Event implements ShouldBeLogged
+{
+    public function log()
+    {
+        journal()->action(class_basename($this))->save();
+    }
 }
 
 class ShouldBeLoggedTest extends JournalTestCase

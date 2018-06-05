@@ -40,7 +40,7 @@ class JournalEventSubscriber
      */
     protected function store(ShouldBeLogged $event)
     {
-        Activity::fromEvent($event)->save();
+        $event->log();
     }
 
     /**

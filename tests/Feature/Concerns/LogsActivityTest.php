@@ -54,7 +54,7 @@ class LogsActivityTest extends JournalTestCase
         $activity = Activity::all()->last();
         $this->assertEquals($user->id, $activity->subject_id);
         $this->assertEquals('created', $activity->event);
-        $this->assertEquals([], $activity->old_data);
+        $this->assertEquals(null, $activity->old_data);
         $this->assertEquals(['id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'password' => $user->password], $activity->new_data);
     }
 
@@ -97,7 +97,7 @@ class LogsActivityTest extends JournalTestCase
         $this->assertEquals($user->id, $activity->subject_id);
         $this->assertEquals('deleted', $activity->event);
         $this->assertEquals(['id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'password' => $user->password], $activity->old_data);
-        $this->assertEquals([], $activity->new_data);
+        $this->assertEquals(null, $activity->new_data);
     }
 
     /** @test */

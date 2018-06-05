@@ -83,18 +83,4 @@ class Activity extends Model
         return $query->where('causer_type', $causer->getMorphClass())
             ->where('causer_id', $causer->getKey());
     }
-
-    /**
-     * Create an activity from an event that should be logged.
-     *
-     * @param ShouldBeLogged $event
-     * @return Activity
-     */
-    public static function fromEvent(ShouldBeLogged $event): self
-    {
-        $activity = new static();
-        $activity->event = strtolower(class_basename($event));
-
-        return $activity;
-    }
 }

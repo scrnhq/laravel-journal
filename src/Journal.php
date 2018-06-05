@@ -28,9 +28,9 @@ class Journal
      * Record the model the activity is applied on.
      *
      * @param \Illuminate\Database\Eloquent\Model $subject
-     * @return $this
+     * @return \Scrn\Journal\Journal
      */
-    public function on(Model $subject)
+    public function on(Model $subject): Journal
     {
         $this->subject = $subject;
 
@@ -39,11 +39,11 @@ class Journal
 
     /**
      * Record the model that caused the activity.
-     *u
+     *
      * @param Authenticatable|null $causer
-     * @return $this
+     * @return \Scrn\Journal\Journal
      */
-    public function by(Authenticatable $causer = null)
+    public function by(Authenticatable $causer = null): Journal
     {
         $this->causer = $causer;
 
@@ -54,9 +54,9 @@ class Journal
      * Set the event for the activity.
      *
      * @param string $event
-     * @return $this
+     * @return \Scrn\Journal\Journal
      */
-    public function action(string $event)
+    public function action(string $event): Journal
     {
         $this->event = $event;
 
@@ -68,9 +68,9 @@ class Journal
      *
      * @param array $old_data
      * @param array $new_data
-     * @return $this
+     * @return \Scrn\Journal\Journal
      */
-    public function data(array $old_data = null, array $new_data = null)
+    public function data(array $old_data = null, array $new_data = null): Journal
     {
         $this->old_data = $old_data;
         $this->new_data = $new_data;
@@ -79,11 +79,11 @@ class Journal
     }
 
     /**
-     * Save the log.
+     * Create the activity.
      *
      * @return \Scrn\Journal\Models\Activity
      */
-    public function save()
+    public function toActivity(): Activity
     {
         /** @var Activity $activity */
         $activity = app(Activity::class)->newInstance();
@@ -97,6 +97,18 @@ class Journal
         $activity->url = $this->resolveUrl();
         $activity->ip_address = $this->resolveIp();
         $activity->user_agent = $this->resolveUserAgent();
+
+        return $activity;
+    }
+
+    /**
+     * Save the activity.
+     *
+     * @return \Scrn\Journal\Models\Activity
+     */
+    public function save(): Activity
+    {
+        $activity = $this->toActivity();
 
         $activity->save();
 
