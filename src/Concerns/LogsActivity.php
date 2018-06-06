@@ -202,6 +202,12 @@ trait LogsActivity
      */
     public function shouldLogEvent(string $event): bool
     {
+        if (array_has($this->getDirty(), 'deleted_at')) {
+            if ($this->getDirty()['deleted_at'] === null) {
+                return false;
+            }
+        }
+
         return true;
     }
 
