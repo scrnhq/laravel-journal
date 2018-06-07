@@ -41,10 +41,10 @@ class Journal
     /**
      * Record the model that caused the activity.
      *
-     * @param Authenticatable|null $causer
+     * @param \Illuminate\Database\Eloquent\Model|null $causer
      * @return \Scrn\Journal\Journal
      */
-    public function by(Authenticatable $causer = null): Journal
+    public function by(Model $causer = null): Journal
     {
         $this->causer = $causer;
 
@@ -89,8 +89,8 @@ class Journal
         /** @var Activity $activity */
         $activity = app(Activity::class)->newInstance();
         $activity->subject()->associate($this->subject);
-        $activity->causer()->associate($this->resolveUser());
-        $activity->causer_snapshot = $this->causer ? $this->causer->toArray() : null;
+        $activity->causer()->associate($this->causer ?? $this->resolveUser());
+        $activity->causer_snapshot = $activity->causer ? $activity->causer->toArray() : null;
         $activity->event = $this->event;
         $activity->old_data = $this->old_data;
         $activity->new_data = $this->new_data;
