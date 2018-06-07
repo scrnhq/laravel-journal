@@ -29,20 +29,15 @@ trait LogsActivity
 
         foreach ($instance->getLoggedEvents() as $event) {
             static::registerModelEvent($event, function (Model $model) use ($event) {
-                if (!$model->shouldLogEvent($event)) {
+                if (! $model->shouldLogEvent($event)) {
                     return;
                 }
 
                 $attributeGetter = $model->resolveAttributeGetter($event);
 
-                list($old_data, $new_data) = method_exists($model, $attributeGetter)
-                    ? $model->$attributeGetter(...func_get_args())
-                    : null;
+                list($old_data, $new_data) = method_exists($model, $attributeGetter) ? $model->$attributeGetter(...func_get_args()) : null;
 
-                journal()->action($event)
-                    ->on($model)
-                    ->data($old_data, $new_data)
-                    ->save();
+                $model->transformActivity(journal()->action($event)->on($model)->data($old_data, $new_data)->toActivity())->save();
             });
         }
     }
@@ -154,7 +149,7 @@ trait LogsActivity
      */
     public function shouldAttributeBeLogged(string $attribute): bool
     {
-        return in_array($attribute, $this->getLoggedAttributes()) && !in_array($attribute, $this->getIgnoredAttributes());
+        return in_array($attribute, $this->getLoggedAttributes()) && ! in_array($attribute, $this->getIgnoredAttributes());
     }
 
     /**
@@ -166,7 +161,7 @@ trait LogsActivity
     {
         $attributes = $this->loggedAttributes ?? array_keys($this->attributes);
 
-        if (!$this->shouldLogTimestamps()) {
+        if (! $this->shouldLogTimestamps()) {
             $attributes = array_diff($attributes, [static::CREATED_AT, static::UPDATED_AT]);
         }
 
@@ -244,6 +239,17 @@ trait LogsActivity
     public function resolveAttributeGetter(string $event): string
     {
         return sprintf('get%sEventAttributes', studly_case($event));
+    }
+
+    /**
+     * Transform the activity data before saving.
+     *
+     * @param \Scrn\Journal\Models\Activity $activity
+     * @return \Scrn\Journal\Models\Activity
+     */
+    public function transformActivity(Activity $activity)
+    {
+        return $activity;
     }
 
     /**
