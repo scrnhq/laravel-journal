@@ -41,7 +41,6 @@ trait LogsActivity
 
                 journal()->action($event)
                     ->on($model)
-                    ->by(auth()->user())
                     ->data($old_data, $new_data)
                     ->save();
             });
