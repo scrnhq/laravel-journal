@@ -123,7 +123,7 @@ class Journal
      */
     protected function resolveUser()
     {
-        $resolver = config('journals.resolver.user', UserResolver::class);
+        $resolver = config('journal.resolvers.user', UserResolver::class);
 
         return call_user_func([$resolver, 'resolve']);
     }
