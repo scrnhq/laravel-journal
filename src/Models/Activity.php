@@ -5,10 +5,10 @@ namespace Scrn\Journal\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Scrn\Journal\Contracts\ShouldBeLogged;
 
 /**
  * @property string $event
+ * @property string $description
  * @property string $old_data
  * @property string $new_data
  * @property string $subject_id

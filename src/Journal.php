@@ -2,7 +2,6 @@
 
 namespace Scrn\Journal;
 
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Request;
 use Scrn\Journal\Models\Activity;
@@ -12,6 +11,9 @@ class Journal
 {
     /** @var string */
     protected $event;
+
+    /** @var string */
+    protected $description;
 
     /** @var \Illuminate\Database\Eloquent\Model */
     protected $subject;
@@ -65,6 +67,19 @@ class Journal
     }
 
     /**
+     * Set the description for the activity.
+     *
+     * @param string $description
+     * @return \Scrn\Journal\Journal
+     */
+    public function description(string $description): Journal
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    /**
      * Set the data for the activity.
      *
      * @param array $old_data
@@ -92,6 +107,7 @@ class Journal
         $activity->causer()->associate($this->causer ?? $this->resolveUser());
         $activity->causer_snapshot = $activity->causer ? $activity->causer->toArray() : null;
         $activity->event = $this->event;
+        $activity->description = $this->description;
         $activity->old_data = $this->old_data;
         $activity->new_data = $this->new_data;
 
