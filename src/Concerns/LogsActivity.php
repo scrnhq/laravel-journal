@@ -5,8 +5,7 @@ namespace Scrn\Journal\Concerns;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Config;
+use Scrn\Journal\Events\ActivityPrepared;
 use Scrn\Journal\Models\Activity;
 
 trait LogsActivity
@@ -37,7 +36,9 @@ trait LogsActivity
 
                 list($old_data, $new_data) = method_exists($model, $attributeGetter) ? $model->$attributeGetter(...func_get_args()) : null;
 
-                $model->transformActivity(journal()->action($event)->on($model)->data($old_data, $new_data)->toActivity())->save();
+                $activity = $model->transformActivity(journal()->action($event)->on($model)->data($old_data, $new_data)->toActivity());
+
+                event(new ActivityPrepared($activity));
             });
         }
     }
@@ -51,7 +52,7 @@ trait LogsActivity
     {
         $attributes = [];
 
-        foreach ($this->attributes as $attribute => $value) {
+        foreach ($this->getAttributes() as $attribute => $value) {
             if ($this->shouldAttributeBeLogged($attribute)) {
                 $attributes[$attribute] = $value;
             }
@@ -73,7 +74,7 @@ trait LogsActivity
         $old = [];
         $new = [];
 
-        foreach (array_merge($this->getDirty(), $this->getChanges()) as $attribute => $value) {
+        foreach ($this->getDirty() as $attribute => $value) {
             if ($this->shouldAttributeBeLogged($attribute)) {
                 $old[$attribute] = $this->getOriginal($attribute);
                 $new[$attribute] = $this->getAttribute($attribute);
@@ -95,7 +96,7 @@ trait LogsActivity
     {
         $attributes = [];
 
-        foreach ($this->attributes as $attribute => $value) {
+        foreach ($this->getAttributes() as $attribute => $value) {
             if ($this->shouldAttributeBeLogged($attribute)) {
                 $attributes[$attribute] = $value;
             }
@@ -124,7 +125,7 @@ trait LogsActivity
      */
     public function getLoggedEvents(): array
     {
-        $events = Config::get('journal.events', ['created', 'updated', 'deleted']);
+        $events = config()->get('journal.events', ['created', 'updated', 'deleted']);
 
         if (in_array(SoftDeletes::class, class_uses_recursive(static::class))) {
             $events[] = 'restored';
@@ -134,9 +135,7 @@ trait LogsActivity
             $events = array_merge($events, ['pivotAttached', 'pivotDetached', 'pivotUpdated']);
         }
 
-        if (isset($this->logged)) {
-            $events = array_merge($events, $this->logged ?? []);
-        }
+        $events = array_merge($events, $this->logged ?? []);
 
         return $events;
     }
@@ -185,7 +184,7 @@ trait LogsActivity
      */
     public function shouldLogTimestamps(): bool
     {
-        return $this->logTimestamps ?? Config::get('journal.timestamps', false);
+        return $this->logTimestamps ?? config()->get('journal.timestamps', false);
     }
 
     /**
@@ -214,7 +213,7 @@ trait LogsActivity
      */
     public function getOriginalRelation(string $key, $default = null)
     {
-        return Arr::get($this->originalRelations, $key, $default);
+        return array_get($this->originalRelations, $key, $default);
     }
 
     /**
