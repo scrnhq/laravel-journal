@@ -25,6 +25,31 @@ trait LogsRelatedActivity
     }
 
     /**
+     * Get the models original relation values.
+     *
+     * @param string $key
+     * @param null $default
+     * @return mixed|array
+     */
+    public function getOriginalRelation(string $key, $default = null)
+    {
+        return array_get($this->originalRelations, $key, $default);
+    }
+
+    /**
+     * Sync a single original relation with its current value.
+     *
+     * @param string $relation
+     * @return $this
+     */
+    public function syncOriginalRelation(string $relation)
+    {
+        $this->originalRelations[$relation] = $this->getRelationValue($relation);
+
+        return $this;
+    }
+
+    /**
      * Get the attributes for the pivot attached event.
      *
      * @param Model $model

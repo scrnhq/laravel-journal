@@ -5,11 +5,11 @@ namespace Scrn\Journal\Concerns;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Scrn\Journal\Events\ActivityPrepared;
 use Scrn\Journal\Models\Activity;
 
 trait LogsActivity
 {
+    use DetectsChanges;
     use LogsRelatedActivity;
 
     /**
@@ -36,31 +36,23 @@ trait LogsActivity
 
                 list($old_data, $new_data) = method_exists($model, $attributeGetter) ? $model->$attributeGetter(...func_get_args()) : null;
 
-                $activity = $model->transformActivity(journal()->action($event)->on($model)->data($old_data, $new_data)->toActivity());
+                $activity = journal()->action($event)->on($model)->data($old_data, $new_data)->toActivity();
 
-                event(new ActivityPrepared($activity));
+                $model->transformActivity($activity)->save();
             });
         }
     }
 
     /**
-     * Get the attributes for a created event.
+     * Get the attributes for the created event.
      *
      * @return array
      */
     public function getCreatedEventAttributes(): array
     {
-        $attributes = [];
-
-        foreach ($this->getAttributes() as $attribute => $value) {
-            if ($this->shouldAttributeBeLogged($attribute)) {
-                $attributes[$attribute] = $value;
-            }
-        }
-
         return [
             null,
-            $attributes,
+            $this->getLoggedAttributeValues(),
         ];
     }
 
@@ -71,15 +63,13 @@ trait LogsActivity
      */
     public function getUpdatedEventAttributes(): array
     {
-        $old = [];
-        $new = [];
+        $old = $this->getOldAttributes();
+        $new = $this->getLoggedAttributeValues();
 
-        foreach ($this->getDirty() as $attribute => $value) {
-            if ($this->shouldAttributeBeLogged($attribute)) {
-                $old[$attribute] = $this->getOriginal($attribute);
-                $new[$attribute] = $this->getAttribute($attribute);
-            }
-        }
+        $new = array_diff_uassoc($new, $old, function ($new, $old) {
+            return $new <=> $old;
+        });
+        $old = array_intersect_key($old, $new);
 
         return [
             $old,
@@ -94,22 +84,14 @@ trait LogsActivity
      */
     public function getDeletedEventAttributes(): array
     {
-        $attributes = [];
-
-        foreach ($this->getAttributes() as $attribute => $value) {
-            if ($this->shouldAttributeBeLogged($attribute)) {
-                $attributes[$attribute] = $value;
-            }
-        }
-
         return [
-            $attributes,
+            $this->getLoggedAttributeValues(),
             null,
         ];
     }
 
     /**
-     * Get the attributes for the deleted event.
+     * Get the attributes for the restored event.
      *
      * @return array
      */
@@ -141,53 +123,6 @@ trait LogsActivity
     }
 
     /**
-     * Determine if the attribute should be logged.
-     *
-     * @param string $attribute
-     * @return bool
-     */
-    public function shouldAttributeBeLogged(string $attribute): bool
-    {
-        return in_array($attribute, $this->getLoggedAttributes()) && ! in_array($attribute, $this->getIgnoredAttributes());
-    }
-
-    /**
-     * Get the attributes that should be logged.
-     *
-     * @return array
-     */
-    public function getLoggedAttributes(): array
-    {
-        $attributes = $this->loggedAttributes ?? array_keys($this->attributes);
-
-        if (! $this->shouldLogTimestamps()) {
-            $attributes = array_diff($attributes, [static::CREATED_AT, static::UPDATED_AT]);
-        }
-
-        return $attributes;
-    }
-
-    /**
-     * Get the attributes that should never be logged.
-     *
-     * @return array
-     */
-    public function getIgnoredAttributes(): array
-    {
-        return $this->ignoredAttributes ?? [];
-    }
-
-    /**
-     * Determine if timestamps should be logged.
-     *
-     * @return bool
-     */
-    public function shouldLogTimestamps(): bool
-    {
-        return $this->logTimestamps ?? config()->get('journal.timestamps', false);
-    }
-
-    /**
      * Determine if the event should be logged.
      *
      * @param string $event
@@ -202,31 +137,6 @@ trait LogsActivity
         }
 
         return true;
-    }
-
-    /**
-     * Get the models original relation values.
-     *
-     * @param string $key
-     * @param null $default
-     * @return mixed|array
-     */
-    public function getOriginalRelation(string $key, $default = null)
-    {
-        return array_get($this->originalRelations, $key, $default);
-    }
-
-    /**
-     * Sync a single original relation with its current value.
-     *
-     * @param string $relation
-     * @return $this
-     */
-    public function syncOriginalRelation(string $relation)
-    {
-        $this->originalRelations[$relation] = $this->getRelationValue($relation);
-
-        return $this;
     }
 
     /**

@@ -4,6 +4,7 @@ namespace Scrn\Journal;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Request;
+use Scrn\Journal\Events\ActivityPrepared;
 use Scrn\Journal\Models\Activity;
 use Scrn\Journal\Resolvers\UserResolver;
 
@@ -127,7 +128,7 @@ class Journal
     {
         $activity = $this->toActivity();
 
-        $activity->save();
+        event(new ActivityPrepared($activity));
 
         return $activity;
     }
