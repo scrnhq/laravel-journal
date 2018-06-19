@@ -25,13 +25,6 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class Activity extends Model
 {
     /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'activity_logs';
-
-    /**
      * The attributes that should be cast to native types.
      *
      * @var array
@@ -41,6 +34,16 @@ class Activity extends Model
         'new_data' => 'array',
         'causer_snapshot' => 'array',
     ];
+
+    /**
+     * Get the table associated with the model.
+     *
+     * @return string
+     */
+    public function getTable()
+    {
+        return config('journal.table', 'activity_logs');
+    }
 
     /**
      * The model associated with the activity.
