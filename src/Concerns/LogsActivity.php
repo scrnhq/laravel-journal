@@ -63,18 +63,50 @@ trait LogsActivity
      */
     public function getUpdatedEventAttributes(): array
     {
+        $new = [];
         $old = $this->getOldAttributes();
-        $new = $this->getLoggedAttributeValues();
 
-        $new = array_diff_uassoc($new, $old, function ($new, $old) {
-            return $new <=> $old;
-        });
+        foreach ($this->getLoggedAttributeValues() as $key => $value) {
+            if (!$this->oldIsEquivalent($key, $value)) {
+                $new[$key] = $value;
+            }
+        }
+
         $old = array_intersect_key($old, $new);
 
         return [
             $old,
             $new,
         ];
+    }
+
+    /**
+     * Determine if the new and old value for a given key are equivalent.
+     *
+     * @return bool
+     */
+    protected function oldIsEquivalent($key, $new): bool
+    {
+        if (! array_key_exists($key, $this->oldAttributes)) {
+            return false;
+        }
+
+        $original = $this->oldAttributes[$key];
+
+        if ($new === $original) {
+            return true;
+        } elseif (is_null($new)) {
+            return false;
+        } elseif ($this->isDateAttribute($key)) {
+            return $this->fromDateTime($new) ===
+                $this->fromDateTime($original);
+        } elseif ($this->hasCast($key)) {
+            return $this->castAttribute($key, $new) ===
+                $this->castAttribute($key, $original);
+        }
+
+        return is_numeric($new) && is_numeric($original)
+            && strcmp((string) $new, (string) $original) === 0;
     }
 
     /**
