@@ -17,9 +17,15 @@ class Article extends Model
         'content',
     ];
 
-    protected $observables = ['published'];
+    protected $observables = ['published', 'perished'];
 
-    protected $logged = ['published'];
+    protected $logged = ['published', 'perished'];
+
+    protected $ignore_activities = [
+        'updated' => [
+            'perished_at'
+        ],
+    ];
 
     public function user(): BelongsTo
     {
@@ -31,6 +37,14 @@ class Article extends Model
         $this->published_at = now();
         $this->save();
         $this->fireModelEvent('published');
+        return $this;
+    }
+
+    public function perish()
+    {
+        $this->perished_at = now();
+        $this->save();
+        $this->fireModelEvent('perished');
         return $this;
     }
 }

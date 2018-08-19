@@ -11,6 +11,7 @@ trait LogsActivity
 {
     use DetectsChanges;
     use LogsRelatedActivity;
+    use IsIgnorable;
 
     /**
      * @var array
@@ -162,13 +163,11 @@ trait LogsActivity
      */
     public function shouldLogEvent(string $event): bool
     {
-        if (array_has($this->getDirty(), 'deleted_at')) {
-            if ($this->getDirty()['deleted_at'] === null) {
-                return false;
-            }
+        if (array_has($this->getDirty(), 'deleted_at') && $this->getDirty()['deleted_at'] === null) {
+            return false;
         }
 
-        return true;
+        return ! $this->ignore($event);
     }
 
     /**
