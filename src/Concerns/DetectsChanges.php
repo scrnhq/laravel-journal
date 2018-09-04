@@ -16,7 +16,7 @@ trait DetectsChanges
      */
     protected static function bootDetectsChanges()
     {
-        static::updating(function (Model $model) {
+        static::saving(function (Model $model) {
             $oldModel = $model->replicate()->setRawAttributes($model->getOriginal());
 
             $model->oldAttributes = $oldModel->getLoggedAttributeValues();
