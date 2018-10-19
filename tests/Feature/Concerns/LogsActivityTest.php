@@ -152,4 +152,24 @@ class LogsActivityTest extends JournalTestCase
         $this->assertEquals(null, $activity->old_data);
         $this->assertEquals(null, $activity->new_data);
     }
+
+    /** @test */
+    public function it_ignores_model_events()
+    {
+        $article = factory(Article::class)->create();
+
+        // User created, Article created
+        $this->assertCount(2, Activity::all());
+
+        $article->perish();
+
+        // Article perished, and Article also updated but was ignored
+        $this->assertCount(3, Activity::all());
+
+        $activity = Activity::all()->last();
+        $this->assertEquals($article->id, $activity->subject_id);
+        $this->assertEquals('perished', $activity->event);
+        $this->assertEquals(null, $activity->old_data);
+        $this->assertEquals(null, $activity->new_data);
+    }
 }
